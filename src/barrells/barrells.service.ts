@@ -29,56 +29,109 @@ export class BarrellsService {
       }
     } else {
       let done = false;
-      child.exec('git pull', { cwd: 'ferment' }).on('exit', () => {
-        done = true;
+      const result = child
+        .exec('git pull', { cwd: 'ferment' })
+        .on('exit', () => {
+          done = true;
+        });
+      result.stdout.on('data', (data) => {
+        if (data.includes('Already up-to-date.')) {
+          for (const file of fs.readdirSync('ferment/Barrells')) {
+            if (!file.endsWith('.py') || file == 'index.py') {
+              continue;
+            }
+            const name = file.replace('.py', '');
+            const content = fs
+              .readFileSync(`ferment/Barrells/${file}`, 'utf8')
+              .split('\n');
+            const description = content
+              .find((line) => line.includes('description'))
+              ?.split('=')[1]
+              .replaceAll('\t', '')
+              .replaceAll('"', '') as string;
+            const download = content
+              .find((line) => line.includes('url'))
+              ?.split('=')[1]
+              .replaceAll('\t', '')
+              .replaceAll("'", '')
+              .replaceAll('"', '') as string;
+            const git =
+              content.find((line) => line.includes('git'))?.split('=')[1] ==
+              'True';
+            const dependencies = content
+              .find((line) => line.includes('dependencies'))
+              ?.split('=')[1]
+              .replaceAll('\t', '')
+              .replaceAll('[', '')
+              .replaceAll(']', '')
+              .replaceAll(' ', '')
+              .replaceAll("'", '')
+              .replaceAll('"', '') as string;
+            const home = content
+              .find((line) => line.includes('homepage'))
+              ?.split('=')[1]
+              .replaceAll('\t', '')
+              .replaceAll('"', '') as string;
+            this.barrells.push({
+              name,
+              description,
+              download,
+              git,
+              dependencies: dependencies ? dependencies.split(',') : undefined,
+              home,
+            });
+          }
+        }
       });
       while (!done) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }
-    for (const file of fs.readdirSync('ferment/Barrells')) {
-      if (!file.endsWith('.py') || file == 'index.py') {
-        continue;
+    if (this.barrells.length == 0) {
+      for (const file of fs.readdirSync('ferment/Barrells')) {
+        if (!file.endsWith('.py') || file == 'index.py') {
+          continue;
+        }
+        const name = file.replace('.py', '');
+        const content = fs
+          .readFileSync(`ferment/Barrells/${file}`, 'utf8')
+          .split('\n');
+        const description = content
+          .find((line) => line.includes('description'))
+          ?.split('=')[1]
+          .replaceAll('\t', '')
+          .replaceAll('"', '') as string;
+        const download = content
+          .find((line) => line.includes('url'))
+          ?.split('=')[1]
+          .replaceAll('\t', '')
+          .replaceAll("'", '')
+          .replaceAll('"', '') as string;
+        const git =
+          content.find((line) => line.includes('git'))?.split('=')[1] == 'True';
+        const dependencies = content
+          .find((line) => line.includes('dependencies'))
+          ?.split('=')[1]
+          .replaceAll('\t', '')
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .replaceAll(' ', '')
+          .replaceAll("'", '')
+          .replaceAll('"', '') as string;
+        const home = content
+          .find((line) => line.includes('homepage'))
+          ?.split('=')[1]
+          .replaceAll('\t', '')
+          .replaceAll('"', '') as string;
+        this.barrells.push({
+          name,
+          description,
+          download,
+          git,
+          dependencies: dependencies ? dependencies.split(',') : undefined,
+          home,
+        });
       }
-      const name = file.replace('.py', '');
-      const content = fs
-        .readFileSync(`ferment/Barrells/${file}`, 'utf8')
-        .split('\n');
-      const description = content
-        .find((line) => line.includes('description'))
-        ?.split('=')[1]
-        .replaceAll('\t', '')
-        .replaceAll('"', '') as string;
-      const download = content
-        .find((line) => line.includes('url'))
-        ?.split('=')[1]
-        .replaceAll('\t', '')
-        .replaceAll("'", '')
-        .replaceAll('"', '') as string;
-      const git =
-        content.find((line) => line.includes('git'))?.split('=')[1] == 'True';
-      const dependencies = content
-        .find((line) => line.includes('dependencies'))
-        ?.split('=')[1]
-        .replaceAll('\t', '')
-        .replaceAll('[', '')
-        .replaceAll(']', '')
-        .replaceAll(' ', '')
-        .replaceAll("'", '')
-        .replaceAll('"', '') as string;
-      const home = content
-        .find((line) => line.includes('homepage'))
-        ?.split('=')[1]
-        .replaceAll('\t', '')
-        .replaceAll('"', '') as string;
-      this.barrells.push({
-        name,
-        description,
-        download,
-        git,
-        dependencies: dependencies ? dependencies.split(',') : undefined,
-        home,
-      });
     }
     return this.barrells || [];
   }

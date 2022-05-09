@@ -20,7 +20,8 @@ lerna-debug.log*
 # Tests
 /coverage
 /.nyc_output
-
+dockerfile
+docker-compose.yml
 # IDEs and editors
 /.idea
 .project
