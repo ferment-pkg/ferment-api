@@ -35,7 +35,7 @@ export class BarrellsService {
           done = true;
         });
       result.stdout.on('data', (data) => {
-        if (data.includes('Already up-to-date.')) {
+        if (!data.includes('Already up-to-date.')) {
           for (const file of fs.readdirSync('ferment/Barrells')) {
             if (!file.endsWith('.py') || file == 'index.py') {
               continue;
