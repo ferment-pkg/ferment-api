@@ -8,41 +8,26 @@ export class BarrellsService {
     if (!this.barrells) {
       this.barrells = [];
     }
-    if (!fs.existsSync('ferment')) {
+    if (!fs.existsSync('Barrells')) {
       this.barrells = [];
-      let done = false;
-      child
-        .exec('git clone https://github.com/ferment-pkg/ferment ferment')
-        .on('close', () => {
-          fs.rmSync('ferment/cmd', { recursive: true });
-          fs.rmSync('ferment/images', { recursive: true });
-          fs.rmSync('ferment/bin', { recursive: true });
-          fs.rmSync('ferment/main.go', { recursive: true });
-          fs.rmSync('ferment/go.mod', { recursive: true });
-          fs.rmSync('ferment/go.sum', { recursive: true });
-          done = true;
-          console.log(done);
-        });
+      child.exec('git clone https://github.com/ferment-pkg/Barrells Barrells');
       //wait for done to be true
-      while (!done) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
     } else {
       let done = false;
       const result = child
-        .exec('git pull', { cwd: 'ferment' })
+        .exec('git pull', { cwd: 'Barrells' })
         .on('exit', () => {
           done = true;
         });
       result.stdout.on('data', (data) => {
         if (!data.includes('Already up-to-date.')) {
-          for (const file of fs.readdirSync('ferment/Barrells')) {
+          for (const file of fs.readdirSync('Barrells')) {
             if (!file.endsWith('.py') || file == 'index.py') {
               continue;
             }
             const name = file.replace('.py', '');
             const content = fs
-              .readFileSync(`ferment/Barrells/${file}`, 'utf8')
+              .readFileSync(`Barrells/${file}`, 'utf8')
               .split('\n');
             const description = content
               .find((line) => line.includes('description'))
@@ -88,14 +73,12 @@ export class BarrellsService {
       }
     }
     if (this.barrells.length == 0) {
-      for (const file of fs.readdirSync('ferment/Barrells')) {
+      for (const file of fs.readdirSync('Barrells')) {
         if (!file.endsWith('.py') || file == 'index.py') {
           continue;
         }
         const name = file.replace('.py', '');
-        const content = fs
-          .readFileSync(`ferment/Barrells/${file}`, 'utf8')
-          .split('\n');
+        const content = fs.readFileSync(`Barrells/${file}`, 'utf8').split('\n');
         const description = content
           .find((line) => line.includes('description'))
           ?.split('=')[1]

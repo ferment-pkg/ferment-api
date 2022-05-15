@@ -1,6 +1,5 @@
 import { Controller, Get, Param, Res, HttpException } from '@nestjs/common';
 import { BarrellsService } from './barrells.service';
-import { Response } from 'express';
 @Controller('barrells')
 export class BarrellsController {
   constructor(private readonly barrellsService: BarrellsService) {}
