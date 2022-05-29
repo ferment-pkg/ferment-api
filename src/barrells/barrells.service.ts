@@ -1,18 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import * as fs from 'fs';
 import * as child from 'child_process';
+import * as fs from 'fs';
 @Injectable()
 export class BarrellsService {
   private barrells: Barrell[];
   async getBarrells(): Promise<Barrell[]> {
-    if (!this.barrells) {
-      this.barrells = [];
-    }
-    if (!fs.existsSync('Barrells')) {
-      this.barrells = [];
-      child.exec('git clone https://github.com/ferment-pkg/Barrells Barrells');
-      //wait for done to be true
-    } else {
+    setInterval(async () => {
       let done = false;
       const result = child
         .exec('git pull', { cwd: 'Barrells' })
@@ -71,6 +64,14 @@ export class BarrellsService {
       while (!done) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
+    }, 1000 * 60 * 5);
+    if (!this.barrells) {
+      this.barrells = [];
+    }
+    if (!fs.existsSync('Barrells')) {
+      this.barrells = [];
+      child.exec('git clone https://github.com/ferment-pkg/Barrells Barrells');
+      //wait for done to be true
     }
     if (this.barrells.length == 0) {
       for (const file of fs.readdirSync('Barrells')) {
