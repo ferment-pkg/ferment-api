@@ -14,7 +14,7 @@ export class BarrellsService {
         });
       result.stdout.on('data', (data) => {
         if (!data.includes('Already up-to-date.')) {
-	  this.barrells.length=0
+          this.barrells.length = 0;
           for (const file of fs.readdirSync('Barrells')) {
             if (!file.endsWith('.py') || file == 'index.py') {
               continue;
