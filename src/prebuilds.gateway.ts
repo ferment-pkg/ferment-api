@@ -17,7 +17,7 @@ type UploadMessage = {
   data: string;
   name: string;
 };
-@WebSocketGateway({ namespace: 'prebuilds' })
+@WebSocketGateway()
 export class PrebuildsGateway {
   private app: FirebaseApp;
   private storage: FirebaseStorage;
