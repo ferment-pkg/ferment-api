@@ -120,4 +120,7 @@ export class BarrellsService {
     }
     return this.barrells || [];
   }
+  async uploadBarrell(barrell: string, file: Express.Multer.File) {
+    //
+  }
 }

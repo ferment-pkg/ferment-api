@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Res, HttpException } from '@nestjs/common';
+import { Controller, Get, HttpException, Param } from '@nestjs/common';
 import { BarrellsService } from './barrells.service';
 @Controller('barrells')
 export class BarrellsController {
