@@ -1,4 +1,8 @@
-import { SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
+import {
+  MessageBody,
+  SubscribeMessage,
+  WebSocketGateway,
+} from '@nestjs/websockets';
 import * as child from 'child_process';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import {
@@ -9,7 +13,6 @@ import {
   uploadBytes,
 } from 'firebase/storage';
 import * as fs from 'fs';
-import { Socket } from 'socket.io';
 type UploadMessage = {
   file: string;
   part: number;
@@ -44,11 +47,15 @@ export class PrebuildsGateway {
     this.storage = getStorage(this.app);
   }
   @SubscribeMessage('upload')
-  async handleUpload(socket: Socket, data: UploadMessage): Promise<string> {
-    if (socket.handshake.headers['user-agent'] != 'fermenter-uploader') {
-      return 'You are not authorized to use this service';
-    }
-    if (!data.file || !data.part || !data.of || !data.data || !data.name) {
+  async handleUpload(@MessageBody() data: UploadMessage): Promise<string> {
+    if (
+      !data ||
+      !data.file ||
+      !data.part ||
+      !data.of ||
+      !data.data ||
+      !data.name
+    ) {
       return 'Invalid data';
     }
     fs.mkdirSync(`/tmp/ferment-api/prebuilds/${data.name}/`, {
@@ -107,12 +114,9 @@ export class PrebuildsGateway {
   }
   @SubscribeMessage('download')
   async handleDownload(
-    socket: Socket,
+    socket: any,
     data: { name: string; file: string },
   ): Promise<{ data: any } | string> {
-    if (socket.handshake.headers['user-agent'] != 'fermenter-downloader') {
-      return 'You are not authorized to use this service';
-    }
     try {
       const r = ref(this.storage, `${data.name}/${data.file}`);
       const stream = getStream(r);
