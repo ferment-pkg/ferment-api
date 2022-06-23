@@ -1,5 +1,7 @@
+import { Logger } from '@nestjs/common';
 import {
   MessageBody,
+  OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
@@ -21,9 +23,10 @@ type UploadMessage = {
   name: string;
 };
 @WebSocketGateway()
-export class PrebuildsGateway {
+export class PrebuildsGateway implements OnGatewayConnection {
   private app: FirebaseApp;
   private storage: FirebaseStorage;
+  private readonly logger = new Logger('PrebuildsGateway');
   constructor() {
     const firebaseConfig = {
       apiKey: process.env.APIKEY,
@@ -45,6 +48,9 @@ export class PrebuildsGateway {
 
     this.app = initializeApp(firebaseConfig);
     this.storage = getStorage(this.app);
+  }
+  handleConnection(client: any, ...args: any[]) {
+    this.logger.log(`Client ${client.id} connected`);
   }
   @SubscribeMessage('upload')
   async handleUpload(@MessageBody() data: UploadMessage): Promise<string> {
