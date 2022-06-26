@@ -49,8 +49,8 @@ export class PrebuildsGateway implements OnGatewayConnection {
     this.app = initializeApp(firebaseConfig);
     this.storage = getStorage(this.app);
   }
-  handleConnection(client: any, ...args: any[]) {
-    this.logger.log(`Client connected ${args.toString()}`);
+  handleConnection(client: any, ...args: any) {
+    this.logger.log(`Client connected ${JSON.stringify(args)}`);
   }
   @SubscribeMessage('upload')
   async handleUpload(@MessageBody() data: UploadMessage): Promise<string> {
