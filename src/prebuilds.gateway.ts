@@ -50,10 +50,11 @@ export class PrebuildsGateway implements OnGatewayConnection {
     this.storage = getStorage(this.app);
   }
   handleConnection(client: any, ...args: any[]) {
-    this.logger.log(`Client ${client.id} connected`);
+    this.logger.log(`Client connected ${args}`);
   }
   @SubscribeMessage('upload')
   async handleUpload(@MessageBody() data: UploadMessage): Promise<string> {
+    console.log(data);
     if (
       !data ||
       !data.file ||
