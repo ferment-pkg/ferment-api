@@ -50,7 +50,7 @@ export class PrebuildsGateway implements OnGatewayConnection {
     this.storage = getStorage(this.app);
   }
   handleConnection(client: any, ...args: any) {
-    this.logger.log(`Client connected ${JSON.stringify(args)}`);
+    this.logger.log(`Client connected ${args.toString()}`);
   }
   @SubscribeMessage('upload')
   async handleUpload(@MessageBody() data: UploadMessage): Promise<string> {
