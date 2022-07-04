@@ -50,12 +50,12 @@ export class PrebuildsGateway implements OnGatewayConnection {
     this.storage = getStorage(this.app);
   }
   handleConnection(client: any, ...args: any) {
-    const e = []
+    const e = [];
     for (const f in args) {
-      e.push(f)
+      e.push(f);
     }
     for (const f of args) {
-      e.push(f)
+      e.push(f);
     }
     this.logger.log(`Client connected ${e.toString()}`);
   }
@@ -132,6 +132,19 @@ export class PrebuildsGateway implements OnGatewayConnection {
     data: { name: string; file: string },
   ): Promise<{ data: any } | string> {
     try {
+      //list dir /tmp/ferment-api/downloads and look for directory with name of data.name
+      const files = fs.readdirSync(`/tmp/ferment-api/downloads/${data.name}`);
+      if (files.length != 0 && files.find((f) => f == data.file)) {
+        setTimeout(() => {
+          fs.unlinkSync(`/tmp/ferment-api/downloads/`);
+        }, 1000 * 60 * 30);
+        return {
+          data: fs.readFileSync(
+            `/tmp/ferment-api/downloads/${data.name}/${data.file}`,
+            { encoding: 'base64' },
+          ),
+        };
+      }
       const r = ref(this.storage, `${data.name}/${data.file}`);
       const stream = getStream(r);
       fs.mkdirSync('/tmp/ferment-api/downloads/' + data.name, {
@@ -140,13 +153,14 @@ export class PrebuildsGateway implements OnGatewayConnection {
       const stm = fs.createWriteStream(
         `/tmp/ferment-api/downloads/${data.name}/${data.file}`,
       );
-      await stream.pipe(stm);
+      stream.pipe(stm);
       const content = fs.readFileSync(
         `/tmp/ferment-api/downloads/${data.name}/${data.file}`,
       );
       //wait 1 second
-      return { data: content.toString() };
+      return { data: content.toString('base64') };
     } catch (err) {
+      this.logger.error(err);
       return 'Error While Downloading';
     }
   }
