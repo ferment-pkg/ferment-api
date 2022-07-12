@@ -10,7 +10,6 @@ import { FirebaseApp, initializeApp } from 'firebase/app';
 import {
   FirebaseStorage,
   getStorage,
-  getStream,
   ref,
   uploadBytes,
 } from 'firebase/storage';
@@ -126,42 +125,11 @@ export class PrebuildsGateway implements OnGatewayConnection {
     }
     return `Uploaded Part ${data.part}/${data.of}`;
   }
-  @SubscribeMessage('download')
-  async handleDownload(
-    socket: any,
-    data: { name: string; file: string },
-  ): Promise<{ data: any } | string> {
-    try {
-      //list dir /tmp/ferment-api/downloads and look for directory with name of data.name
-      const files = fs.readdirSync(`/tmp/ferment-api/downloads/${data.name}`);
-      if (files.length != 0 && files.find((f) => f == data.file)) {
-        setTimeout(() => {
-          fs.unlinkSync(`/tmp/ferment-api/downloads/`);
-        }, 1000 * 60 * 30);
-        return {
-          data: fs.readFileSync(
-            `/tmp/ferment-api/downloads/${data.name}/${data.file}`,
-            { encoding: 'base64' },
-          ),
-        };
-      }
-      const r = ref(this.storage, `${data.name}/${data.file}`);
-      const stream = getStream(r);
-      fs.mkdirSync('/tmp/ferment-api/downloads/' + data.name, {
-        recursive: true,
-      });
-      const stm = fs.createWriteStream(
-        `/tmp/ferment-api/downloads/${data.name}/${data.file}`,
-      );
-      stream.pipe(stm);
-      const content = fs.readFileSync(
-        `/tmp/ferment-api/downloads/${data.name}/${data.file}`,
-      );
-      //wait 1 second
-      return { data: content.toString('base64') };
-    } catch (err) {
-      this.logger.error(err);
-      return 'Error While Downloading';
-    }
-  }
+  // @SubscribeMessage('download')
+  // async handleDownload(
+  //   socket: any,
+  //   data: { name: string; file: string },
+  // ): Promise<{ data: any } | string> {
+
+  // }
 }

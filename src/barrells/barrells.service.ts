@@ -1,9 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import * as child from 'child_process';
+import { FirebaseApp, initializeApp } from 'firebase/app';
+import { FirebaseStorage, getBytes, getStorage, ref } from 'firebase/storage';
 import * as fs from 'fs';
 @Injectable()
 export class BarrellsService {
   private barrells: Barrell[];
+  app: FirebaseApp;
+  storage: FirebaseStorage;
+  currentDownloads: string[] = [];
+  constructor() {
+    const firebaseConfig = {
+      apiKey: process.env.APIKEY,
+
+      authDomain: 'fermentprebuild.firebaseapp.com',
+
+      projectId: 'fermentprebuild',
+
+      storageBucket: 'fermentprebuild.appspot.com',
+
+      messagingSenderId: process.env.MESSAGEID,
+
+      appId: process.env.APPID,
+
+      measurementId: process.env.MEASUREID,
+    };
+
+    // Initialize Firebase
+
+    this.app = initializeApp(firebaseConfig);
+    this.storage = getStorage(this.app);
+    setInterval(async () => {
+      const files = fs.readdirSync('/tmp/ferment-api/downloads');
+      files.forEach((f) => {
+        if (this.currentDownloads.find((d) => d == f)) {
+          files.splice(files.indexOf(f), 1);
+        }
+      });
+      for (const f of files) {
+        fs.unlinkSync(`/tmp/ferment-api/downloads/${f}`);
+      }
+    }, 1000 * 60 * 60);
+  }
   async getBarrells(): Promise<Barrell[]> {
     setInterval(async () => {
       let done = false;
@@ -120,7 +158,15 @@ export class BarrellsService {
     }
     return this.barrells || [];
   }
-  async uploadBarrell(barrell: string, file: Express.Multer.File) {
-    //
+  async downloadFile(
+    name: string,
+    file: string,
+  ): Promise<HttpException | ArrayBuffer> {
+    if (!fs.existsSync('Barrells')) {
+      await this.getBarrells();
+    }
+    const fileRef = ref(this.storage, `${name}/${file}`);
+    const bytes = getBytes(fileRef);
+    return bytes;
   }
 }
