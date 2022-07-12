@@ -1,15 +1,19 @@
-import { SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
+import {
+  MessageBody,
+  OnGatewayConnection,
+  SubscribeMessage,
+  WebSocketGateway,
+} from '@nestjs/websockets';
 import * as child from 'child_process';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import {
   FirebaseStorage,
   getStorage,
-  getStream,
   ref,
   uploadBytes,
 } from 'firebase/storage';
 import * as fs from 'fs';
-import { Socket } from 'socket.io';
 type UploadMessage = {
   file: string;
   part: number;
@@ -18,9 +22,10 @@ type UploadMessage = {
   name: string;
 };
 @WebSocketGateway()
-export class PrebuildsGateway {
+export class PrebuildsGateway implements OnGatewayConnection {
   private app: FirebaseApp;
   private storage: FirebaseStorage;
+  private readonly logger = new Logger('PrebuildsGateway');
   constructor() {
     const firebaseConfig = {
       apiKey: process.env.APIKEY,
@@ -43,12 +48,27 @@ export class PrebuildsGateway {
     this.app = initializeApp(firebaseConfig);
     this.storage = getStorage(this.app);
   }
-  @SubscribeMessage('upload')
-  async handleUpload(socket: Socket, data: UploadMessage): Promise<string> {
-    if (socket.handshake.headers['user-agent'] != 'fermenter-uploader') {
-      return 'You are not authorized to use this service';
+  handleConnection(client: any, ...args: any) {
+    const e = [];
+    for (const f in args) {
+      e.push(f);
     }
-    if (!data.file || !data.part || !data.of || !data.data || !data.name) {
+    for (const f of args) {
+      e.push(f);
+    }
+    this.logger.log(`Client connected ${e.toString()}`);
+  }
+  @SubscribeMessage('upload')
+  async handleUpload(@MessageBody() data: UploadMessage): Promise<string> {
+    console.log(data);
+    if (
+      !data ||
+      !data.file ||
+      !data.part ||
+      !data.of ||
+      !data.data ||
+      !data.name
+    ) {
       return 'Invalid data';
     }
     fs.mkdirSync(`/tmp/ferment-api/prebuilds/${data.name}/`, {
@@ -105,31 +125,11 @@ export class PrebuildsGateway {
     }
     return `Uploaded Part ${data.part}/${data.of}`;
   }
-  @SubscribeMessage('download')
-  async handleDownload(
-    socket: Socket,
-    data: { name: string; file: string },
-  ): Promise<{ data: any } | string> {
-    if (socket.handshake.headers['user-agent'] != 'fermenter-downloader') {
-      return 'You are not authorized to use this service';
-    }
-    try {
-      const r = ref(this.storage, `${data.name}/${data.file}`);
-      const stream = getStream(r);
-      fs.mkdirSync('/tmp/ferment-api/downloads/' + data.name, {
-        recursive: true,
-      });
-      const stm = fs.createWriteStream(
-        `/tmp/ferment-api/downloads/${data.name}/${data.file}`,
-      );
-      await stream.pipe(stm);
-      const content = fs.readFileSync(
-        `/tmp/ferment-api/downloads/${data.name}/${data.file}`,
-      );
-      //wait 1 second
-      return { data: content.toString() };
-    } catch (err) {
-      return 'Error While Downloading';
-    }
-  }
+  // @SubscribeMessage('download')
+  // async handleDownload(
+  //   socket: any,
+  //   data: { name: string; file: string },
+  // ): Promise<{ data: any } | string> {
+
+  // }
 }
