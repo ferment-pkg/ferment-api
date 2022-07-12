@@ -35,9 +35,10 @@ export class BarrellsController {
   }
   @Get('/download/:name/:file')
   @Header('Cache-Control', 'max-age=3600')
+  @Header('Content-Type', 'application/gzip')
   async downloadBarrell(
     @Param() { name, file }: { name: string; file: string },
-    @Res({ passthrough: true }) res: Response,
+    @Res() res: Response,
   ): Promise<HttpException | Buffer | any> {
     if (!(name && file)) throw new HttpException('Missing parameters', 400);
     const buffer = await this.barrellsService.downloadFile(name, file);
@@ -45,6 +46,7 @@ export class BarrellsController {
       this.barrellsService.currentDownloads.indexOf(`${name}/${file}`),
       1,
     );
-    return buffer;
+    res.set({ 'Content-Disposition': `attachment; filename="${file}"` });
+    res.send(buffer);
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as child from 'child_process';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import { FirebaseStorage, getBytes, getStorage, ref } from 'firebase/storage';
+import { FirebaseStorage, getStorage, getStream, ref } from 'firebase/storage';
 import * as fs from 'fs';
 @Injectable()
 export class BarrellsService {
@@ -162,15 +162,44 @@ export class BarrellsService {
     if (!fs.existsSync('Barrells')) {
       await this.getBarrells();
     }
-    const fileRef = ref(this.storage, `${name}/${file}`);
-    const stream = await getBytes(fileRef);
-    this.currentDownloads.push(`${name}/${file}`);
-    fs.mkdirSync('/tmp/ferment-api/downloads/' + name, { recursive: true });
-    fs.writeFileSync(
-      `/tmp/ferment-api/downloads/${name}/${file}`,
-      Buffer.from(stream),
-    );
+    if (fs.existsSync(`/tmp/ferment-api/downloads/${name}/${file}`)) {
+      let done = false;
+      let returnData: Buffer;
+      this.currentDownloads.push(`${name}/${file}`);
+      fs.readFile(`/tmp/ferment-api/downloads/${name}/${file}`, (err, data) => {
+        returnData = data;
+        done = true;
+      });
+      while (!done) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+      return returnData;
+    } else {
+      const fileRef = ref(this.storage, `${name}/${file}`);
+      const stream = getStream(fileRef);
+      this.currentDownloads.push(`${name}/${file}`);
+      fs.mkdirSync('/tmp/ferment-api/downloads/' + name, { recursive: true });
+      const w = fs.createWriteStream(
+        `/tmp/ferment-api/downloads/${name}/${file}`,
+      );
+      let done = false;
+      stream.pipe(w).once('finish', () => {
+        done = true;
+      });
+      while (!done) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+      done = false;
+      let returnData: Buffer;
 
-    return fs.readFileSync(`/tmp/ferment-api/downloads/${name}/${file}`);
+      fs.readFile(`/tmp/ferment-api/downloads/${name}/${file}`, (err, data) => {
+        returnData = data;
+        done = true;
+      });
+      while (!done) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+      return returnData;
+    }
   }
 }
