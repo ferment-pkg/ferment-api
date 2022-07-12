@@ -1,7 +1,7 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as child from 'child_process';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import { FirebaseStorage, getBytes, getStorage, ref } from 'firebase/storage';
+import { FirebaseStorage, getStorage, getStream, ref } from 'firebase/storage';
 import * as fs from 'fs';
 @Injectable()
 export class BarrellsService {
@@ -161,12 +161,12 @@ export class BarrellsService {
   async downloadFile(
     name: string,
     file: string,
-  ): Promise<HttpException | ArrayBuffer> {
+  ): Promise<NodeJS.ReadableStream> {
     if (!fs.existsSync('Barrells')) {
       await this.getBarrells();
     }
     const fileRef = ref(this.storage, `${name}/${file}`);
-    const bytes = getBytes(fileRef);
+    const bytes = getStream(fileRef);
     return bytes;
   }
 }
