@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as child from 'child_process';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import { FirebaseStorage, getStorage, getStream, ref } from 'firebase/storage';
+import { FirebaseStorage, getBytes, getStorage, ref } from 'firebase/storage';
 import * as fs from 'fs';
 @Injectable()
 export class BarrellsService {
@@ -158,17 +158,19 @@ export class BarrellsService {
     }
     return this.barrells || [];
   }
-  async downloadFile(name: string, file: string): Promise<fs.ReadStream> {
+  async downloadFile(name: string, file: string): Promise<Buffer> {
     if (!fs.existsSync('Barrells')) {
       await this.getBarrells();
     }
     const fileRef = ref(this.storage, `${name}/${file}`);
-    const stream = getStream(fileRef);
-    const write = fs.createWriteStream(
-      `/tmp/ferment-api/downloads/${name}/${file}`,
-    );
-    stream.pipe(write);
+    const stream = await getBytes(fileRef);
     this.currentDownloads.push(`${name}/${file}`);
-    return fs.createReadStream(`/tmp/ferment-api/downloads/${name}/${file}`);
+    fs.mkdirSync('/tmp/ferment-api/downloads/' + name, { recursive: true });
+    fs.writeFileSync(
+      `/tmp/ferment-api/downloads/${name}/${file}`,
+      Buffer.from(stream),
+    );
+
+    return fs.readFileSync(`/tmp/ferment-api/downloads/${name}/${file}`);
   }
 }
