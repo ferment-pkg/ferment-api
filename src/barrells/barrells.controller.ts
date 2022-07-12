@@ -38,7 +38,7 @@ export class BarrellsController {
       1,
     );
     res.set({
-      'Content-Type': 'application/gzip',
+      // 'Content-Type': 'application/gzip',
       'Content-Disposition': `attachment; filename=${file}`,
     });
     return buffer;
