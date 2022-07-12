@@ -37,8 +37,10 @@ export class BarrellsController {
       this.barrellsService.currentDownloads.indexOf(`${name}/${file}`),
       1,
     );
-    res.setHeader('Content-Type', 'application/gzip');
-    res.setHeader('Content-Disposition', `attachment; filename=${file}`);
+    res.set({
+      'Content-Type': 'application/gzip',
+      'Content-Disposition': `attachment; filename=${file}`,
+    });
     res.send(buffer);
   }
 }
