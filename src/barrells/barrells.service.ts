@@ -158,7 +158,7 @@ export class BarrellsService {
     }
     return this.barrells || [];
   }
-  async downloadFile(name: string, file: string): Promise<Buffer> {
+  async downloadFile(name: string, file: string): Promise<fs.ReadStream> {
     if (!fs.existsSync('Barrells')) {
       await this.getBarrells();
     }
@@ -169,6 +169,6 @@ export class BarrellsService {
     );
     stream.pipe(write);
     this.currentDownloads.push(`${name}/${file}`);
-    return fs.readFileSync(`/tmp/ferment-api/downloads/${name}/${file}`);
+    return fs.createReadStream(`/tmp/ferment-api/downloads/${name}/${file}`);
   }
 }
