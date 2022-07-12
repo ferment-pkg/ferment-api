@@ -39,11 +39,11 @@ export class BarrellsController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<HttpException | StreamableFile> {
     if (!(name && file)) throw new HttpException('Missing parameters', 400);
-    res.set({
-      'Content-Type': 'application/gzip',
-      'Content-Disposition': `attachment; filename="${file}"`,
-    });
     const stream = await this.barrellsService.downloadFile(name, file);
-    return new StreamableFile(stream.read() as Buffer);
+    this.barrellsService.currentDownloads.splice(
+      this.barrellsService.currentDownloads.indexOf(`${name}/${file}`),
+      1,
+    );
+    return new StreamableFile(stream);
   }
 }

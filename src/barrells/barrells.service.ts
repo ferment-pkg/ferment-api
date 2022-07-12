@@ -6,8 +6,8 @@ import * as fs from 'fs';
 @Injectable()
 export class BarrellsService {
   private barrells: Barrell[];
-  app: FirebaseApp;
-  storage: FirebaseStorage;
+  private app: FirebaseApp;
+  private storage: FirebaseStorage;
   currentDownloads: string[] = [];
   constructor() {
     const firebaseConfig = {
@@ -158,15 +158,17 @@ export class BarrellsService {
     }
     return this.barrells || [];
   }
-  async downloadFile(
-    name: string,
-    file: string,
-  ): Promise<NodeJS.ReadableStream> {
+  async downloadFile(name: string, file: string): Promise<fs.ReadStream> {
     if (!fs.existsSync('Barrells')) {
       await this.getBarrells();
     }
     const fileRef = ref(this.storage, `${name}/${file}`);
-    const bytes = getStream(fileRef);
-    return bytes;
+    const stream = getStream(fileRef);
+    const write = fs.createWriteStream(
+      `/tmp/ferment-api/downloads/${name}/${file}`,
+    );
+    stream.pipe(write);
+    this.currentDownloads.push(`${name}/${file}`);
+    return fs.createReadStream(`/tmp/ferment-api/downloads/${name}/${file}`);
   }
 }
