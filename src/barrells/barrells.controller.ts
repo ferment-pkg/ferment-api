@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  HttpException,
-  Param,
-  Res,
-  StreamableFile,
-} from '@nestjs/common';
+import { Controller, Get, HttpException, Param, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { BarrellsService } from './barrells.service';
 @Controller('barrells')
@@ -37,13 +30,17 @@ export class BarrellsController {
   async downloadBarrell(
     @Param() { name, file }: { name: string; file: string },
     @Res({ passthrough: true }) res: Response,
-  ): Promise<HttpException | StreamableFile> {
+  ): Promise<HttpException | Buffer> {
     if (!(name && file)) throw new HttpException('Missing parameters', 400);
-    const stream = await this.barrellsService.downloadFile(name, file);
+    const buffer = await this.barrellsService.downloadFile(name, file);
     this.barrellsService.currentDownloads.splice(
       this.barrellsService.currentDownloads.indexOf(`${name}/${file}`),
       1,
     );
-    return new StreamableFile(stream);
+    res.set({
+      'Content-Type': 'application/gzip',
+      'Content-Disposition': `attachment; filename=${file}`,
+    });
+    return buffer;
   }
 }
