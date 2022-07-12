@@ -34,7 +34,6 @@ export class BarrellsController {
     }
   }
   @Get('/download/:name/:file')
-  @Header('Content-Type', 'application/gzip')
   @Header('Cache-Control', 'max-age=3600')
   async downloadBarrell(
     @Param() { name, file }: { name: string; file: string },
@@ -46,9 +45,6 @@ export class BarrellsController {
       this.barrellsService.currentDownloads.indexOf(`${name}/${file}`),
       1,
     );
-    res.set({
-      'Content-Disposition': `attachment; filename=${file}`,
-    });
     return buffer;
   }
 }
