@@ -29,8 +29,8 @@ export class BarrellsController {
   @Get('/download/:name/:file')
   async downloadBarrell(
     @Param() { name, file }: { name: string; file: string },
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<HttpException | Buffer> {
+    @Res({ passthrough: false }) res: Response,
+  ): Promise<HttpException | Buffer | void> {
     if (!(name && file)) throw new HttpException('Missing parameters', 400);
     const buffer = await this.barrellsService.downloadFile(name, file);
     this.barrellsService.currentDownloads.splice(
@@ -41,6 +41,6 @@ export class BarrellsController {
       // 'Content-Type': 'application/gzip',
       'Content-Disposition': `attachment; filename=${file}`,
     });
-    return buffer;
+    res.send(buffer);
   }
 }
