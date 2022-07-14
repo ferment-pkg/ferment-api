@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as child from 'child_process';
-import { FirebaseApp, initializeApp } from 'firebase/app';
+import { FirebaseApp, FirebaseOptions, initializeApp } from 'firebase/app';
 import { FirebaseStorage, getStorage, getStream, ref } from 'firebase/storage';
 import * as fs from 'fs';
 @Injectable()
@@ -10,7 +10,7 @@ export class BarrellsService {
   private storage: FirebaseStorage;
   currentDownloads: string[] = [];
   constructor() {
-    const firebaseConfig = {
+    const firebaseConfig: FirebaseOptions = {
       apiKey: process.env.APIKEY,
 
       authDomain: 'fermentprebuild.firebaseapp.com',
@@ -38,7 +38,7 @@ export class BarrellsService {
         }
       });
       for (const f of files) {
-        fs.unlinkSync(`/tmp/ferment-api/downloads/${f}`);
+        fs.rmdirSync(`/tmp/ferment-api/downloads/${f}`);
       }
     }, 1000 * 60 * 60);
   }
