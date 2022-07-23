@@ -38,3 +38,7 @@ docker-compose.yml
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+#yarn
+.yarn
+!.yarn/cache
+!.yarn/sdks

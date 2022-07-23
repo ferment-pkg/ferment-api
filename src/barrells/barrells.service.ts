@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import * as child from 'child_process';
 import { FirebaseApp, FirebaseOptions, initializeApp } from 'firebase/app';
-import { FirebaseStorage, getStorage, getStream, ref } from 'firebase/storage';
+import {
+  FirebaseStorage,
+  getMetadata,
+  getStorage,
+  getStream,
+  ref,
+} from 'firebase/storage';
 import * as fs from 'fs';
 @Injectable()
 export class BarrellsService {
@@ -200,6 +206,22 @@ export class BarrellsService {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
       return returnData;
+    }
+  }
+  async getFileSize(name: string, file: string): Promise<number> {
+    //use firebase to get file size without
+    const fileRef = ref(this.storage, `${name}/${file}`);
+    const metadata = await getMetadata(fileRef);
+    return metadata.size;
+  }
+  async checkIfFileExists(name: string, file: string): Promise<boolean> {
+    const fileRef = ref(this.storage, `${name}/${file}`);
+    //return false if metadata promise is rejected
+    try {
+      await getMetadata(fileRef);
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 }

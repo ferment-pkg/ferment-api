@@ -49,4 +49,12 @@ export class BarrellsController {
     res.set({ 'Content-Disposition': `attachment; filename="${file}"` });
     res.send(buffer);
   }
+  @Get('/info/:name/:file')
+  @Header('Cache-Control', 'max-age=3600')
+  async getFileInfo(@Param() { name, file }: { name: string; file: string }) {
+    if (!(name && file)) throw new HttpException('Missing parameters', 400);
+    if (!this.barrellsService.checkIfFileExists(name, file))
+      throw new HttpException('File not found', 404);
+    return { fileSize: await this.barrellsService.getFileSize(name, file) };
+  }
 }
