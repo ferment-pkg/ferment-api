@@ -6,6 +6,7 @@ import {
   getMetadata,
   getStorage,
   getStream,
+  listAll,
   ref,
 } from 'firebase/storage';
 import * as fs from 'fs';
@@ -168,6 +169,11 @@ export class BarrellsService {
     if (!fs.existsSync('Barrells')) {
       await this.getBarrells();
     }
+    //check if @ is in file
+    if (!file.includes('@')) {
+      //make file the latesrt version
+      file = await this.getLatestVersion(name);
+    }
     if (fs.existsSync(`/tmp/ferment-api/downloads/${name}/${file}`)) {
       let done = false;
       let returnData: Buffer;
@@ -223,5 +229,66 @@ export class BarrellsService {
     } catch (e) {
       return false;
     }
+  }
+  async listFiles(name: string): Promise<string[]> {
+    const fileRef = ref(this.storage, `${name}`);
+    const { items } = await listAll(fileRef);
+    const versions = items.map((item) => item.name);
+    const versionSorted = versions.sort((a, b) => {
+      const aSplit = a.split('.');
+      const bSplit = b.split('.');
+      if (aSplit[0] > bSplit[0]) {
+        return -1;
+      } else if (aSplit[0] < bSplit[0]) {
+        return 1;
+      } else {
+        if (aSplit[1] > bSplit[1]) {
+          return -1;
+        } else if (aSplit[1] < bSplit[1]) {
+          return 1;
+        } else {
+          if (aSplit[2] > bSplit[2]) {
+            return -1;
+          } else if (aSplit[2] < bSplit[2]) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
+      }
+    });
+    return versionSorted;
+  }
+  async getLatestVersion(name: string): Promise<string> {
+    const fileRef = ref(this.storage, name);
+    const { items } = await listAll(fileRef);
+    const versions = items.map((item) => item.name.split('@')[1] || item.name);
+    //file format lloks like name@version.tar.gz
+    const latestVersion = versions
+      .sort((a, b) => {
+        const aSplit = a.split('.');
+        const bSplit = b.split('.');
+        if (aSplit[0] > bSplit[0]) {
+          return -1;
+        } else if (aSplit[0] < bSplit[0]) {
+          return 1;
+        } else {
+          if (aSplit[1] > bSplit[1]) {
+            return -1;
+          } else if (aSplit[1] < bSplit[1]) {
+            return 1;
+          } else {
+            if (aSplit[2] > bSplit[2]) {
+              return -1;
+            } else if (aSplit[2] < bSplit[2]) {
+              return 1;
+            } else {
+              return 0;
+            }
+          }
+        }
+      })
+      .pop();
+    return latestVersion;
   }
 }

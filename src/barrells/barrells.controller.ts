@@ -41,6 +41,8 @@ export class BarrellsController {
     @Res() res: Response,
   ): Promise<HttpException | Buffer | any> {
     if (!(name && file)) throw new HttpException('Missing parameters', 400);
+    if (!(await this.barrellsService.checkIfFileExists(name, file)))
+      throw new HttpException('File Doesnt Exists', 404);
     const buffer = await this.barrellsService.downloadFile(name, file);
     this.barrellsService.currentDownloads.splice(
       this.barrellsService.currentDownloads.indexOf(`${name}/${file}`),
@@ -55,6 +57,10 @@ export class BarrellsController {
     if (!(name && file)) throw new HttpException('Missing parameters', 400);
     if (!this.barrellsService.checkIfFileExists(name, file))
       throw new HttpException('File not found', 404);
-    return { fileSize: await this.barrellsService.getFileSize(name, file) };
+    return {
+      fileSize: await this.barrellsService.getFileSize(name, file),
+      latestVersion: await this.barrellsService.getLatestVersion(name),
+      allFiles: await this.barrellsService.listFiles(name),
+    };
   }
 }
