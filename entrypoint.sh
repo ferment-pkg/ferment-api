@@ -1,5 +1,5 @@
 pull=$(git pull)
-if [[ "$pull" == *"Already Updated"* ]]; then
+if [[ "$pull" == *"Already up to date."* ]]; then
   yarn start:prod
   exit 0
 fi
