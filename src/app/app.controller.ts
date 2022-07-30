@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpStatus, Req } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import * as fs from 'fs/promises';
 import { AppService } from './app.service';
 @Controller('')
 export class AppController {
-  @Get('ghpayload')
+  @Post('ghpayload')
   async getGithubPayload(
     @Req() req: Request,
     @Body() body: { config: { secret: string } },
