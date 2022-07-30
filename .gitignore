@@ -39,8 +39,7 @@ docker-compose.yml
 !.vscode/launch.json
 !.vscode/extensions.json
 #yarn
-.yarn
-!.yarn/cache
-!.yarn/sdks
-!.yarn/releases
+!.yarn
+.yarn/unplugged
+.yarn/install-state.gz
 instances.json
