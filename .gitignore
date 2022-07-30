@@ -42,3 +42,4 @@ docker-compose.yml
 .yarn
 !.yarn/cache
 !.yarn/sdks
+instances.json

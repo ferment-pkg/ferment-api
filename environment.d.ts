@@ -5,5 +5,16 @@ declare namespace NodeJS {
     APPID: string;
     MEASUREID: string;
     MESSAGEID: string;
+    GHPAYLOADSECRET: string;
   }
 }
+
+type StatusFile = {
+  instances: {
+    id: string;
+    status: 'running' | 'building' | 'error';
+    upToDate: boolean;
+  }[];
+  newPush: boolean;
+  instancesUpToDate: number;
+};

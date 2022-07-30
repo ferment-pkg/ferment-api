@@ -12,10 +12,12 @@ import { BarrellsService } from './barrells.service';
 export class BarrellsController {
   constructor(private readonly barrellsService: BarrellsService) {}
   @Get()
+  @Header('Cache-Control', 'max-age=1200')
   async getBarrells(): Promise<Barrell[]> {
     return await this.barrellsService.getBarrells();
   }
   @Get('/:name')
+  @Header('Cache-Control', 'max-age=1200')
   async getBarrellsByName(
     @Param() { name }: { name: string },
   ): Promise<Barrell> {

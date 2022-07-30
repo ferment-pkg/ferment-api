@@ -9,6 +9,7 @@ async function bootstrap() {
   app.enableCors();
   app.set('trust proxy', 1);
   app.useWebSocketAdapter(new WsAdapter(app));
+  app.enableShutdownHooks();
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
