@@ -1,4 +1,6 @@
+git stash
 pull=$(git pull)
+git stash drop 0
 if [[ "$pull" == *"Already up to date."* ]]; then
   yarn start:prod
   exit 0
