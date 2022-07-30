@@ -26,7 +26,7 @@ export class AppController {
       instance.upToDate = false;
     });
     await fs.writeFile('instances.json', JSON.stringify(instances));
-    setTimeout(() => process.exit(0), 1000 * 60 * 5);
+    setTimeout(() => process.exit(0), 1000);
     return HttpStatus.OK;
   }
 }

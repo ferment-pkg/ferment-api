@@ -64,6 +64,6 @@ export class AppService
       await new Promise((resolve) => setTimeout(resolve, 500));
       //give a sigterm
       process.kill(process.pid, 'SIGTERM');
-    }, 1000);
+    }, 1000 * 60 * 5);
   }
 }
