@@ -38,14 +38,18 @@ export class BarrellsService {
     this.app = initializeApp(firebaseConfig);
     this.storage = getStorage(this.app);
     setInterval(async () => {
-      const files = fs.readdirSync('/tmp/ferment-api/downloads');
-      files.forEach((f) => {
-        if (this.currentDownloads.find((d) => d == f)) {
-          files.splice(files.indexOf(f), 1);
+      try {
+        const files = fs.readdirSync('/tmp/ferment-api/downloads');
+        files.forEach((f) => {
+          if (this.currentDownloads.find((d) => d == f)) {
+            files.splice(files.indexOf(f), 1);
+          }
+        });
+        for (const f of files) {
+          fs.rmdirSync(`/tmp/ferment-api/downloads/${f}`);
         }
-      });
-      for (const f of files) {
-        fs.rmdirSync(`/tmp/ferment-api/downloads/${f}`);
+      } catch (err) {
+        fs.mkdirSync('/tmp/ferment-api/downloads', { recursive: true });
       }
     }, 1000 * 60 * 60);
   }
@@ -221,9 +225,19 @@ export class BarrellsService {
     return metadata.size;
   }
   async checkIfFileExists(name: string, file: string): Promise<boolean> {
-    const fileRef = ref(this.storage, `${name}/${file}`);
     //return false if metadata promise is rejected
     try {
+      const fileRef = ref(this.storage, `${name}/${file}`);
+      await getMetadata(fileRef);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  async checkIfBarrellExists(name: string): Promise<boolean> {
+    //return false if metadata promise is rejected
+    try {
+      const fileRef = ref(this.storage, `${name}`);
       await getMetadata(fileRef);
       return true;
     } catch (e) {

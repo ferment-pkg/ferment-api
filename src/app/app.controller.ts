@@ -1,7 +1,6 @@
 import { Body, Controller, HttpStatus, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import * as fs from 'fs/promises';
-import { AppService } from './app.service';
 @Controller('')
 export class AppController {
   @Post('ghpayload')
@@ -17,7 +16,6 @@ export class AppController {
       return HttpStatus.UNAUTHORIZED;
     //GHPAYLOADSECRET
 
-    const id = AppService.id;
     const instancesSTR = await fs.readFile('instances.json', 'utf8');
     const instances: StatusFile = JSON.parse(instancesSTR);
     instances.newPush = true;

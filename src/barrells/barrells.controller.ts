@@ -65,4 +65,15 @@ export class BarrellsController {
       allFiles: await this.barrellsService.listFiles(name),
     };
   }
+  @Get('/info/:name')
+  @Header('Cache-Control', 'max-age=3600')
+  async getBarrellInfo(@Param() { name }: { name: string }) {
+    if (!name) throw new HttpException('Missing parameters', 400);
+    if (!this.barrellsService.checkIfBarrellExists(name))
+      throw new HttpException('Barrell not found', 404);
+    return {
+      latestVersion: await this.barrellsService.getLatestVersion(name),
+      allFiles: await this.barrellsService.listFiles(name),
+    };
+  }
 }
