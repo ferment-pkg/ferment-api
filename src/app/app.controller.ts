@@ -16,11 +16,11 @@ export class AppController {
     @Req() req: Request,
     @Body() body: { config: { secret: string } },
   ): Promise<HttpStatus> {
-    if (req.headers['X-Github-Event'] === 'ping')
+    if (req.headers['X-GitHub-Event'] === 'ping')
       throw new HttpException('Pong', 200);
-    if (req.headers['X-Github-Event'] !== 'push')
+    if (req.headers['X-GitHub-Event'] !== 'push')
       throw new HttpException('Not a push', 400);
-    if (req.headers['X-Github-Delivery'] === undefined)
+    if (req.headers['X-GitHub-Delivery'] === undefined)
       throw new HttpException('Missing X-Github-Delivery', 400);
     //verify signature
     const hmac = req.headers['X-Hub-Signature'];
