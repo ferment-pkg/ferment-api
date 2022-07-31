@@ -303,6 +303,6 @@ export class BarrellsService {
         }
       })
       .pop();
-    return latestVersion;
+    return latestVersion.replace('.tar.gz', '');
   }
 }
