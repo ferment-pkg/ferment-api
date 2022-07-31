@@ -1,4 +1,12 @@
-import { Body, Controller, HttpStatus, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpException,
+  HttpStatus,
+  Post,
+  Req,
+} from '@nestjs/common';
+import * as crypto from 'crypto';
 import { Request } from 'express';
 import * as fs from 'fs/promises';
 @Controller('')
@@ -8,12 +16,21 @@ export class AppController {
     @Req() req: Request,
     @Body() body: { config: { secret: string } },
   ): Promise<HttpStatus> {
-    if (req.headers['X-Github-Event'] === 'ping') return HttpStatus.OK;
-    if (req.headers['X-Github-Event'] !== 'push') return HttpStatus.BAD_REQUEST;
+    if (req.headers['X-Github-Event'] === 'ping')
+      throw new HttpException('Pong', 200);
+    if (req.headers['X-Github-Event'] !== 'push')
+      throw new HttpException('Not a push', 400);
     if (req.headers['X-Github-Delivery'] === undefined)
-      return HttpStatus.BAD_REQUEST;
-    if (body.config.secret != process.env.GHPAYLOADSECRET)
-      return HttpStatus.UNAUTHORIZED;
+      throw new HttpException('Missing X-Github-Delivery', 400);
+    //verify signature
+    const hmac = req.headers['X-Hub-Signature'];
+    const sha =
+      'sha1=' +
+      crypto
+        .createHmac('sha1', process.env.GHPAYLOADSECRET)
+        .update(req.body)
+        .digest('hex');
+    if (hmac !== sha) throw new HttpException('Invalid signature', 400);
     //GHPAYLOADSECRET
 
     const instancesSTR = await fs.readFile('instances.json', 'utf8');
