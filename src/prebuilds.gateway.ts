@@ -12,7 +12,7 @@ import {
   ref,
   uploadBytes,
 } from 'firebase/storage';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 type UploadMessage = {
   file: string;
   part: number;
@@ -70,10 +70,10 @@ export class PrebuildsGateway implements OnGatewayConnection {
     ) {
       return 'Invalid data';
     }
-    fs.mkdirSync(`/tmp/ferment-api/prebuilds/${data.name}/`, {
+    await fs.mkdir(`/tmp/ferment-api/prebuilds/${data.name}/`, {
       recursive: true,
     });
-    fs.appendFileSync(
+    await fs.appendFile(
       `/tmp/ferment-api/prebuilds/${data.name}/${data.file}`,
       data.data,
       {
@@ -82,14 +82,14 @@ export class PrebuildsGateway implements OnGatewayConnection {
     );
     //Checks if all parts have been uploaded
     if (data.part == data.of) {
-      const content = fs.readFileSync(
+      const content = await fs.readFile(
         `/tmp/ferment-api/prebuilds/${data.name}/${data.file}`,
       );
       //upload
       const f = ref(this.storage, `${data.name}/${data.file}`);
       try {
         await uploadBytes(f, content);
-        fs.unlinkSync(`/tmp/ferment-api/prebuilds/${data.name}/${data.file}`);
+        await fs.unlink(`/tmp/ferment-api/prebuilds/${data.name}/${data.file}`);
         return 'Uploaded Complete File';
       } catch (err) {
         return 'Error Uploading File';
