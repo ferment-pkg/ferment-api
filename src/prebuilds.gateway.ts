@@ -5,7 +5,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import * as child from 'child_process';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import {
   FirebaseStorage,
@@ -74,42 +73,15 @@ export class PrebuildsGateway implements OnGatewayConnection {
     fs.mkdirSync(`/tmp/ferment-api/prebuilds/${data.name}/`, {
       recursive: true,
     });
-    fs.writeFileSync(
-      `/tmp/ferment-api/prebuilds/${data.name}/${data.file}.prt${data.part}`,
+    fs.appendFileSync(
+      `/tmp/ferment-api/prebuilds/${data.name}/${data.file}`,
       data.data,
       {
         encoding: 'base64',
-        flag: 'w',
       },
     );
     //Checks if all parts have been uploaded
     if (data.part == data.of) {
-      //Merge and upload to azure
-      let done = false;
-      child
-        .exec(
-          `cd /tmp/ferment-api/prebuilds/${data.name}/ && cat *.prt* > ${data.file}`,
-        )
-        .once('exit', (code) => {
-          if (code == 0) {
-            done = true;
-          } else {
-            return 'Error merging files';
-          }
-        });
-      while (!done) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-      //Do Upload ! NOT IMPLEMENTED YET
-      //DELETE BOTTOM WHEN AZURE UPLOAD FINISHED CREATION
-      // fs.renameSync(
-      //   `/tmp/ferment-api/prebuilds/${data.name}/${data.file}`,
-      //   `/tmp/${data.file}`,
-      // );
-      // fs.rmSync(`/tmp/ferment-api/prebuilds/${data.name}/`, {
-      //   force: true,
-      //   recursive: true,
-      // });
       const content = fs.readFileSync(
         `/tmp/ferment-api/prebuilds/${data.name}/${data.file}`,
       );
