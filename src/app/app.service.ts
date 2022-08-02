@@ -19,7 +19,7 @@ export class AppService
       (instance) => instance.id === AppService.id,
     );
     instances.instances.splice(index, 1);
-    instances.instancesUpToDate--;
+    instances.instancesUpToDate > 0 ? instances.instancesUpToDate-- : null;
 
     //write the file back
     await fs.writeFile('instances.json', JSON.stringify(instances));
@@ -32,12 +32,10 @@ export class AppService
       await fs.stat('instances.json');
     } catch (err) {
       //if not, create it
-      fs.writeFile(
+      await fs.writeFile(
         'instances.json',
         JSON.stringify({ instances: [], newPush: false, instancesUpToDate: 0 }),
       );
-      //wait 500 ms before
-      await new Promise((resolve) => setTimeout(resolve, 500));
     }
     const content = await fs.readFile('instances.json', 'utf8');
     const instances: StatusFile = JSON.parse(content);
@@ -47,6 +45,9 @@ export class AppService
       upToDate: true,
     });
     instances.instancesUpToDate++;
+    if (instances.instancesUpToDate === instances.instances.length) {
+      instances.newPush = false;
+    }
     await fs.writeFile('instances.json', JSON.stringify(instances));
     setInterval(async () => {
       const content = await fs.readFile('instances.json', 'utf8');
