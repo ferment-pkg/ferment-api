@@ -82,18 +82,16 @@ export class PrebuildsGateway implements OnGatewayConnection {
     );
     //Checks if all parts have been uploaded
     if (data.part == data.of) {
-      const content = await fs.readFile(
-        `/tmp/ferment-api/prebuilds/${data.name}/${data.file}`,
-      );
-      //upload
-      const f = ref(this.storage, `${data.name}/${data.file}`);
-      try {
+      setTimeout(async () => {
+        const content = await fs.readFile(
+          `/tmp/ferment-api/prebuilds/${data.name}/${data.file}`,
+        );
+        //upload
+        const f = ref(this.storage, `${data.name}/${data.file}`);
         await uploadBytes(f, content);
         await fs.unlink(`/tmp/ferment-api/prebuilds/${data.name}/${data.file}`);
-        return 'Uploaded Complete File';
-      } catch (err) {
-        return 'Error Uploading File';
-      }
+      }, 1000);
+      return 'Uploaded Complete File';
     }
     return `Uploaded Part ${data.part}/${data.of}`;
   }
