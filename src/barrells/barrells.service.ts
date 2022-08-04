@@ -276,7 +276,7 @@ export class BarrellsService {
   async getLatestVersion(name: string): Promise<string> {
     const fileRef = ref(this.storage, name);
     const { items } = await listAll(fileRef);
-    const versions = items.map((item) => item.name.split('@')[1] || item.name);
+    const versions = items.map((item) => item.name.split('@')[1]);
     //file format lloks like name@version.tar.gz
     const latestVersion = versions
       .sort((a, b) => {
