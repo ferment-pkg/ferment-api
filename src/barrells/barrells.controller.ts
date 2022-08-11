@@ -50,8 +50,11 @@ export class BarrellsController {
       this.barrellsService.currentDownloads.indexOf(`${name}/${file}`),
       1,
     );
-    res.set({ 'Content-Disposition': `attachment; filename="${file}"` });
-    res.send(buffer);
+    res.setHeader(
+      'Content-Length',
+      await this.barrellsService.getFileSize(name, file),
+    );
+    buffer.pipe(res);
   }
   @Get('/info/:name/:file')
   @Header('Cache-Control', 'max-age=3600')

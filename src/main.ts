@@ -1,10 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { WsAdapter } from '@nestjs/platform-ws';
-import { config } from 'dotenv';
 import { AppModule } from './app.module';
 async function bootstrap() {
-  config();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.enableCors();
   app.set('trust proxy', 1);

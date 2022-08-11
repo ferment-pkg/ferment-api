@@ -169,7 +169,10 @@ export class BarrellsService {
     }
     return this.barrells || [];
   }
-  async downloadFile(name: string, file: string): Promise<Buffer> {
+  async downloadFile(
+    name: string,
+    file: string,
+  ): Promise<NodeJS.ReadableStream> {
     if (!fs.existsSync('Barrells')) {
       await this.getBarrells();
     }
@@ -178,45 +181,9 @@ export class BarrellsService {
       //make file the latesrt version
       file = await this.getLatestVersion(name);
     }
-    if (fs.existsSync(`/tmp/ferment-api/downloads/${name}/${file}`)) {
-      let done = false;
-      let returnData: Buffer;
-      this.currentDownloads.push(`${name}/${file}`);
-      fs.readFile(`/tmp/ferment-api/downloads/${name}/${file}`, (err, data) => {
-        returnData = data;
-        done = true;
-      });
-      while (!done) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      return returnData;
-    } else {
-      const fileRef = ref(this.storage, `${name}/${file}`);
-      const stream = getStream(fileRef);
-      this.currentDownloads.push(`${name}/${file}`);
-      fs.mkdirSync('/tmp/ferment-api/downloads/' + name, { recursive: true });
-      const w = fs.createWriteStream(
-        `/tmp/ferment-api/downloads/${name}/${file}`,
-      );
-      let done = false;
-      stream.pipe(w).once('finish', () => {
-        done = true;
-      });
-      while (!done) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      done = false;
-      let returnData: Buffer;
-
-      fs.readFile(`/tmp/ferment-api/downloads/${name}/${file}`, (err, data) => {
-        returnData = data;
-        done = true;
-      });
-      while (!done) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      return returnData;
-    }
+    const refFile = ref(this.storage, `${name}/${file}`);
+    const stream = getStream(refFile);
+    return stream;
   }
   async getFileSize(name: string, file: string): Promise<number> {
     //use firebase to get file size without

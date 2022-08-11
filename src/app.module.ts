@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
-import { BarrellsModule } from './barrells/barrells.module';
-import { PrebuildsGateway } from './prebuilds.gateway';
 import { AppController } from './app/app.controller';
 import { AppService } from './app/app.service';
+import { BarrellsModule } from './barrells/barrells.module';
 
 @Module({
   imports: [BarrellsModule],
   controllers: [AppController],
-  providers: [PrebuildsGateway, AppService],
+  providers: [AppService],
 })
 export class AppModule {}
