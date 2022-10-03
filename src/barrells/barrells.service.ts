@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import * as child from 'child_process';
 import { FirebaseApp, FirebaseOptions, initializeApp } from 'firebase/app';
 import {
@@ -10,13 +11,17 @@ import {
   ref,
 } from 'firebase/storage';
 import * as fs from 'fs';
+import { Model } from 'mongoose';
+import { Barrells, BarrellsDocument } from 'src/schemas/barrells.schema';
 @Injectable()
 export class BarrellsService {
   private barrells: Barrell[];
   private app: FirebaseApp;
   private storage: FirebaseStorage;
   currentDownloads: string[] = [];
-  constructor() {
+  constructor(
+    @InjectModel(Barrells.name) private barrellsModel: Model<BarrellsDocument>,
+  ) {
     const firebaseConfig: FirebaseOptions = {
       apiKey: process.env.APIKEY,
 
@@ -63,6 +68,7 @@ export class BarrellsService {
       //wait for done to be true
     }
     if (this.barrells.length == 0) {
+      const b = await this.getAllBarrell();
       for (const file of fs.readdirSync('Barrells')) {
         if (!file.endsWith('.py') || file == 'index.py') {
           continue;
@@ -103,6 +109,7 @@ export class BarrellsService {
           git,
           dependencies: dependencies ? dependencies.split(',') : undefined,
           home,
+          downloads: b.find((b) => b.name == name)?.downloadsAllTime || 0,
         });
       }
     }
@@ -122,6 +129,7 @@ export class BarrellsService {
     }
     const refFile = ref(this.storage, `${name}/${file}`);
     const stream = getStream(refFile);
+    await this.incrementDownloads(name);
     return stream;
   }
   async getFileSize(name: string, file: string): Promise<number> {
@@ -210,5 +218,18 @@ export class BarrellsService {
       })
       .pop();
     return latestVersion.replace('.tar.gz', '');
+  }
+  async getAllBarrell(): Promise<Barrells[]> {
+    return await this.barrellsModel.find().exec();
+  }
+  async incrementDownloads(name: string): Promise<void> {
+    const barrell = await this.barrellsModel.findOne({ name: name }).exec();
+    if (barrell) {
+      barrell.downloadsAllTime++;
+      await barrell.save();
+    } else {
+      const newBarrell = new this.barrellsModel({ name, downloadsAllTime: 1 });
+      await newBarrell.save();
+    }
   }
 }

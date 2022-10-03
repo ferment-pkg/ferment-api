@@ -23,7 +23,9 @@
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
+    "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^8.0.0",
+    "@nestjs/mongoose": "^9.2.0",
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/platform-socket.io": "^8.4.6",
     "@nestjs/platform-ws": "^8.4.7",
@@ -34,6 +36,7 @@
     "@types/ws": "^8.5.3",
     "dotenv": "^16.0.0",
     "firebase": "^9.8.3",
+    "mongoose": "^6.6.3",
     "pm2": "^5.2.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
@@ -80,5 +83,6 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  }
+  },
+  "packageManager": "yarn@3.2.3"
 }

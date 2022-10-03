@@ -36,7 +36,7 @@ export class BarrellsController {
     }
   }
   @Get('/download/:name/:file')
-  @Header('Cache-Control', 'max-age=3600')
+  //
   @Header('Content-Type', 'application/gzip')
   async downloadBarrell(
     @Param() { name, file }: { name: string; file: string },
@@ -57,7 +57,6 @@ export class BarrellsController {
     buffer.pipe(res);
   }
   @Get('/info/:name/:file')
-  @Header('Cache-Control', 'max-age=3600')
   async getFileInfo(@Param() { name, file }: { name: string; file: string }) {
     if (!(name && file)) throw new HttpException('Missing parameters', 400);
     if (!this.barrellsService.checkIfFileExists(name, file))
@@ -69,7 +68,6 @@ export class BarrellsController {
     };
   }
   @Get('/info/:name')
-  @Header('Cache-Control', 'max-age=3600')
   async getBarrellInfo(@Param() { name }: { name: string }) {
     if (!name) throw new HttpException('Missing parameters', 400);
     if (!this.barrellsService.checkIfBarrellExists(name))

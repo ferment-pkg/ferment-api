@@ -5,4 +5,5 @@ type Barrell = {
   git: boolean;
   dependencies?: string[];
   home?: string;
+  downloads: number;
 };

@@ -6,6 +6,7 @@ declare namespace NodeJS {
     MEASUREID: string;
     MESSAGEID: string;
     GHPAYLOADSECRET: string;
+    MONGODB: string;
   }
 }
 
