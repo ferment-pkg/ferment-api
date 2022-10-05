@@ -57,6 +57,9 @@ export class BarrellsService {
         fs.mkdirSync('/tmp/ferment-api/downloads', { recursive: true });
       }
     }, 1000 * 60 * 60);
+    setInterval(async () => {
+      this.barrells = [];
+    }, 1000 * 60 * 30);
   }
   async getBarrells(): Promise<Barrell[]> {
     if (!this.barrells) {
