@@ -5,10 +5,15 @@ import {
   HttpException,
   Param,
   Res,
+  VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { Response } from 'express';
+import type { Barrell } from './barrells.service';
 import { BarrellsService } from './barrells.service';
-@Controller('barrells')
+@Controller({
+  path: 'barrells',
+  version: ['1', VERSION_NEUTRAL],
+})
 export class BarrellsController {
   constructor(private readonly barrellsService: BarrellsService) {}
   @Get()
@@ -36,7 +41,6 @@ export class BarrellsController {
     }
   }
   @Get('/download/:name/:file')
-  //
   @Header('Content-Type', 'application/gzip')
   async downloadBarrell(
     @Param() { name, file }: { name: string; file: string },

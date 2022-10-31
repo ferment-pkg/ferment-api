@@ -13,6 +13,20 @@ import {
 import * as fs from 'fs';
 import { Model } from 'mongoose';
 import { Barrells, BarrellsDocument } from 'src/schemas/barrells.schema';
+export type Barrell = {
+  pkgname: string;
+  alias?: string[];
+  description: string;
+  source: string[];
+  dependencies?: string[];
+  Dbuild?: string[];
+  home?: string;
+  license?: string[];
+  version: string;
+  downloads: number;
+  archs: string[];
+};
+
 @Injectable()
 export class BarrellsService {
   private barrells: Barrell[];
@@ -73,46 +87,76 @@ export class BarrellsService {
     if (this.barrells.length == 0) {
       const b = await this.getAllBarrell();
       for (const file of fs.readdirSync('Barrells')) {
-        if (!file.endsWith('.py') || file == 'index.py') {
+        if (!file.endsWith('.fpkg')) {
           continue;
         }
-        const name = file.replace('.py', '');
         const content = fs.readFileSync(`Barrells/${file}`, 'utf8').split('\n');
+        const name = content
+          .find((c) => c.startsWith('pkgname='))
+          .split('=')[1]
+          .trim();
         const description = content
-          .find((line) => line.includes('description'))
+          .find((line) => line.startsWith('description'))
           ?.split('=')[1]
           .replaceAll('\t', '')
           .replaceAll('"', '') as string;
         const download = content
-          .find((line) => line.includes('url'))
+          .find((line) => line.startsWith('source'))
           ?.split('=')[1]
           .replaceAll('\t', '')
           .replaceAll("'", '')
-          .replaceAll('"', '') as string;
-        const git =
-          content.find((line) => line.includes('git'))?.split('=')[1] == 'True';
+          .replaceAll('"', '')
+          .split(',');
         const dependencies = content
-          .find((line) => line.includes('dependencies'))
+          .find((line) => line.startsWith('dependencies'))
           ?.split('=')[1]
           .replaceAll('\t', '')
-          .replaceAll('[', '')
-          .replaceAll(']', '')
-          .replaceAll(' ', '')
           .replaceAll("'", '')
-          .replaceAll('"', '') as string;
+          .replaceAll('"', '')
+          .split(',');
+
         const home = content
-          .find((line) => line.includes('homepage'))
+          .find((line) => line.includes('home'))
           ?.split('=')[1]
           .replaceAll('\t', '')
           .replaceAll('"', '') as string;
+        const version = content
+          .find((line) => line.includes('version'))
+          ?.split('=')[1]
+          .replaceAll('\t', '')
+          .replaceAll('"', '') as string;
+        const license = content
+          .find((line) => line.includes('license'))
+          ?.split('=')[1]
+          .replaceAll('\t', '')
+          .replaceAll("'", '')
+          .replaceAll('"', '')
+          .split(',');
+        const Dbuild = content
+          .find((line) => line.includes('Dbuild'))
+          ?.split('=')[1]
+          .replaceAll('\t', '')
+          .replaceAll("'", '')
+          .replaceAll('"', '')
+          .split(',');
+        const archs = content
+          .find((line) => line.includes('archs'))
+          ?.split('=')[1]
+          .replaceAll('\t', '')
+          .replaceAll("'", '')
+          .replaceAll('"', '')
+          .split(',');
         this.barrells.push({
-          name,
+          pkgname: name,
           description,
-          download,
-          git,
-          dependencies: dependencies ? dependencies.split(',') : undefined,
+          source: download,
+          dependencies: dependencies || [],
           home,
           downloads: b.find((b) => b.name == name)?.downloadsAllTime || 0,
+          version,
+          license: license ? license : [],
+          Dbuild: Dbuild ? Dbuild : [],
+          archs,
         });
       }
     }
@@ -220,7 +264,7 @@ export class BarrellsService {
         }
       })
       .pop();
-    return latestVersion.replace('.tar.gz', '');
+    return latestVersion.replace('.ferment', '') || '';
   }
   async getAllBarrell(): Promise<Barrells[]> {
     return await this.barrellsModel.find().exec();
@@ -233,6 +277,18 @@ export class BarrellsService {
     } else {
       const newBarrell = new this.barrellsModel({ name, downloadsAllTime: 1 });
       await newBarrell.save();
+    }
+  }
+  isBarrellUniversal(name: string, version: string): boolean {
+    const barrell = this.barrells.find(
+      (b) => b.pkgname == name && b.version == version,
+    );
+    if (barrell) {
+      return barrell.archs.find((a) => a.toLowerCase() == 'universal')
+        ? true
+        : false;
+    } else {
+      return false;
     }
   }
 }
