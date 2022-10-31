@@ -1,3 +1,4 @@
+import { VersioningType, VERSION_NEUTRAL } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { WsAdapter } from '@nestjs/platform-ws';
@@ -8,6 +9,10 @@ async function bootstrap() {
   app.set('trust proxy', 1);
   app.useWebSocketAdapter(new WsAdapter(app));
   app.enableShutdownHooks();
+  app.enableVersioning({
+    defaultVersion: VERSION_NEUTRAL,
+    type: VersioningType.URI,
+  });
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
